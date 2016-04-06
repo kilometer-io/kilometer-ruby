@@ -88,16 +88,19 @@ module Kilometer
       end
     end
 
+    # Increase a user's property by a value.
+    #
+    #    user_id: identified user's ID
+    #    property_name: user property name to increase
+    #    value: amount by which to increase the property
+    #    headers: custom request headers (if isn't set default values are used)
+    #    endpoint_url: where to send the request (if isn't set default value is used)
     def increase_user_property(user_id, property_name, value=0, headers=nil, endpoint_url=nil)
-      endpoint_url = endpoint_url || @endpoint_url
-
-      url = "#{endpoint_url}/users/#{user_id}/properties/#{property_name}/increase/#{value}"
+      inc_or_dec_user_property('increase', user_id, property_name, value, headers, endpoint_url)
     end
 
     def decrease_user_property(user_id, property_name, value=0, headers=nil, endpoint_url=nil)
-      endpoint_url = endpoint_url || @endpoint_url
-
-      url = "#{endpoint_url}/users/#{user_id}/properties/#{property_name}/decrease/#{value}"
+      inc_or_dec_user_property('decrease', user_id, property_name, value, headers, endpoint_url)
     end
 
     def update_user_properties(user_id, user_properties, headers=nil, endpoint_url=nil)
@@ -113,6 +116,28 @@ module Kilometer
       request.add_field(HEADER_CUSTOMER_APP_ID, @token)
       request.add_field(HEADER_CLIENT_TYPE, CLIENT_TYPE)
       request.add_field(HEADER_TIMESTAMP, Kilometer::now)
+    end
+
+    private
+
+    def inc_or_dec_user_property(action, user_id, property_name, value=0, headers=nil, endpoint_url=nil)
+
+      uri = URI("#{endpoint_url || @endpoint_url}/users/#{user_id}/properties/#{property_name}/#{action}/#{value}")
+
+      Net::HTTP.start(uri.host, uri.port) do |http|
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+
+        # Set headers
+        if headers
+          headers.each { |header, value_| request.add_field(header, value_) }
+        else
+          self.set_default_headers(request)
+        end
+
+        # Execute the request
+        http.request(request)
+      end
     end
 
   end
