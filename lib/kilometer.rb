@@ -99,14 +99,47 @@ module Kilometer
       inc_or_dec_user_property('increase', user_id, property_name, value, headers, endpoint_url)
     end
 
+    # Decrease a user's property by a value.
+    #
+    #    user_id: identified user's ID
+    #    property_name: user property name to decrease
+    #    value: amount by which to decrease the property
+    #    headers: custom request headers (if isn't set default values are used)
+    #    endpoint_url: where to send the request (if isn't set default value is used)
     def decrease_user_property(user_id, property_name, value=0, headers=nil, endpoint_url=nil)
       inc_or_dec_user_property('decrease', user_id, property_name, value, headers, endpoint_url)
     end
 
+    # Update a user's properties with values provided in "user_properties" dictionary
+    #
+    #   user_id: identified user's ID
+    #   user_properties: user properties to update with a new values
+    #   headers: custom request headers (if isn't set default values are used)
+    #   endpoint_url: where to send the request (if isn't set default value is used)
     def update_user_properties(user_id, user_properties, headers=nil, endpoint_url=nil)
-      endpoint_url = endpoint_url || @endpoint_url
 
-      url = "#{endpoint_url}/users/#{user_id}/properties"
+      uri = URI("#{endpoint_url || @endpoint_url}/users/#{user_id}/properties")
+
+      Net::HTTP.start(uri.host, uri.port) do |http|
+
+        request = Net::HTTP::Put.new(uri.request_uri)
+
+        # Set headers
+        if headers
+          headers.each { |header, value| request.add_field(header, value) }
+        else
+          self.set_default_headers(request)
+          request.add_field(HEADER_CONTENT_TYPE, CONTENT_TYPE)
+        end
+
+        # Set payload
+        request.body = user_properties.to_json
+
+        # Execute the request
+        http.request(request)
+      end
+
+
     end
 
     # Gets Net::HTTP request instance and modifies it by adding default HTTP headers.
