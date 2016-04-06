@@ -1,4 +1,4 @@
-require_relative 'kilometer/version'
+require_relative 'kilometer-ruby/version'
 require 'date'
 require 'net/http'
 require 'json'
