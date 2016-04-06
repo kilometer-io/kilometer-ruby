@@ -35,6 +35,10 @@ Typical usage usually looks like this:
   kilometer.update_user_properties('<<<USER-ID>>>', {status: 'active', "name": '<<<JOHN WHITE>>>'})
 ```
 
+## Documentation
+
+* <a href="https://kilometer.readme.io/" target="_blank">Full API Reference</a>
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/kilometer-io/kilometer-ruby.
