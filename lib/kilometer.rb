@@ -18,7 +18,7 @@ module Kilometer
 
     def initialize(token, endpoint_url=nil)
       @token = token
-      @endpoint_url = endpoint_url || 'https://events.kilometer.io'
+      @endpoint_url = endpoint_url || 'http://events.kilometer.io'
     end
 
     public
@@ -45,11 +45,10 @@ module Kilometer
         end
 
         # Set payload
-        payload = {user_id: user_id}
-        request.body = payload.to_json
+        request.body = {user_id: user_id}.to_json
 
         # Execute the request
-        response = http.request(request)
+        http.request(request)
       end
     end
 
@@ -61,9 +60,32 @@ module Kilometer
     #    headers: custom request headers (if isn't set default values are used)
     #    endpoint_url: where to send the request (if isn't set default value is used)
     def add_event(user_id, event_name, event_properties=nil, headers=nil, endpoint_url=nil)
-      endpoint_url = endpoint_url || @endpoint_url
 
-      url = "#{endpoint_url}/events"
+      uri = URI("#{endpoint_url || @endpoint_url}/events")
+
+      Net::HTTP.start(uri.host, uri.port) do |http|
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+
+        # Set headers
+        if headers
+          headers.each { |header, value| request.add_field(header, value) }
+        else
+          self.set_default_headers(request)
+          request.add_field(HEADER_CONTENT_TYPE, CONTENT_TYPE)
+        end
+
+        # Set payload
+        request.body = {
+            user_id: user_id,
+            event_name: event_name,
+            event_type: 'identified',
+            event_properties: event_properties || {}
+        }.to_json
+
+        # Execute the request
+        http.request(request)
+      end
     end
 
     def increase_user_property(user_id, property_name, value=0, headers=nil, endpoint_url=nil)
